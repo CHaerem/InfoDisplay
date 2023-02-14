@@ -17,18 +17,18 @@ from pathlib import Path
 
 
 # Function to initialize the globe
-def init_globe():
-    m = Basemap(projection='ortho', lat_0=0, lon_0=0, resolution='l')
+def init_globe(country):
+    # Create figure
+    fig = plt.figure(figsize=(9,9))
+    ax = fig.add_subplot(111)
 
-    
+    # Set perspective angle
+    lat_viewing_angle = country['latlng'][0]
+    lon_viewing_angle = country['latlng'][1]
 
-    print("Reading shapefile...")
-    m.readshapefile(f'/Users/cher/Documents/Globe/shapefiles/World_Countries/World_Countries', 'countries', drawbounds=True, linewidth=1, color='black')
-    print("Shapefile read.")
+    # Call the basemap and use orthographic projection at viewing angle
+    m = Basemap(projection='ortho', lat_0=lat_viewing_angle, lon_0=lon_viewing_angle) 
 
-    return m
-
-def init_globe_2(plt, m):
     # Define color maps for water and land
     ocean_map = (plt.get_cmap('ocean'))(210)
     cmap = plt.get_cmap('gist_earth')
@@ -43,6 +43,12 @@ def init_globe_2(plt, m):
     # Latitude/longitude line vectors
     m.drawmeridians(range(0, 360, 20))
     m.drawparallels(range(-90, 100, 10))
+
+    print("Reading shapefile...")
+    m.readshapefile(f'shapefiles/World_Countries/World_Countries', 'countries', drawbounds=True, linewidth=1, color='black')
+    print("Shapefile read.")
+
+    return m, ax, fig
     
 # Function to get country info from restcountries API
 def get_country(country_name):
@@ -103,27 +109,15 @@ def add_shapes(m, country, ax):
         ax.add_patch(mpatches.Polygon(shape, facecolor='red', edgecolor='k', linewidth=1., zorder=2, closed=True))
 
 # Function to plot the globe
-def plot_globe(country, m):
-    # Create figure
-    fig = plt.figure(figsize=(9,9))
-    ax = fig.add_subplot(111)
-    init_globe_2(plt, m)
-
-    # Set perspective angle
-    lat_viewing_angle = country['latlng'][0]
-    lon_viewing_angle = country['latlng'][1]
-
-    # Call the basemap and use orthographic projection at viewing angle
-    #m = Basemap(projection='ortho', lat_0=lat_viewing_angle, lon_0=lon_viewing_angle) 
-    m.lat_0 = lat_viewing_angle
-    m.lon_0 = lon_viewing_angle
-
+def plot_globe(country):
+    m, ax, fig = init_globe(country)
+    
     # Add marker if country is small
     if country['area'] < 100000:
         x, y = m(country['latlng'][1], country['latlng'][0])
         m.plot(x, y, 'ro', markersize=5)
     
-    Path(f"/Users/cher/Documents/Globe/globes/{country_name}").mkdir(parents=True, exist_ok=True)  
+    Path(f"globes/{country_name}").mkdir(parents=True, exist_ok=True)  
 
     # Add shapes for the given country
     add_shapes(m, country, ax)
@@ -138,14 +132,11 @@ def plot_globe(country, m):
 if __name__ == '__main__':
     #country_name = input("Enter the name of a country: ")
 
-    # Initialize the globe
-    m = init_globe()
-
     countries = get_all_countries()
     for country in countries:
         country_name = country['name']['common']
         print(f"Generating globe for {country_name}...")
-        plot_globe(country, m)
+        plot_globe(country)
         print(f"Globe for {country_name} generated.")
         print()
         print()

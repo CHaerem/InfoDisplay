@@ -10,6 +10,7 @@
             flex-direction: row;
             height: 100vh;
             margin: 0;
+            filter: url(#grain);
         }
         .flag-container {
             width: 80%;
@@ -19,11 +20,17 @@
             justify-content: center;
             height: 100%;
         }
+        .flag {
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
         img {
-            max-width: 100%;
-            max-height: 100%;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
         }
         .info-container {
+            height: 100%;
+            position: relative;
             width: 20%;
             padding: 20px;
         }
@@ -31,6 +38,8 @@
             width: 100%;
             height: 300px;
             margin: 20px 0;
+            position: absolute;
+            bottom: 20%;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -56,8 +65,16 @@
     </style>
 </head>
 <body>
+    <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+        <filter id="grain">
+            <feTurbulence type="fractalNoise" baseFrequency="1.2" numOctaves="1" result="noise" />
+            <feColorMatrix in="noise" type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 0.3 0" result="lightNoise" />
+            <feBlend in="SourceGraphic" in2="lightNoise" mode="multiply" />
+        </filter>
+    </svg>
+    
     <div class="flag-container">
-        <img src='{{ data["flags"]["svg"] }}' alt="Flag">
+        <img class="flag" src='{{ data["flags"]["svg"] }}' alt="Flag">
     </div>
     <div class="info-container">
         <h1>{{ data["name"]["common"] }}</h1>

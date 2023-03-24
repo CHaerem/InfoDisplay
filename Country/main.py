@@ -36,5 +36,12 @@ def get_globe(country_name):
     except FileNotFoundError:
         return "Globe not found", 404
 
+@app.route("/country/assets/<asset>")
+def get_asset(asset):
+    try:
+        return send_from_directory("templates/", asset)
+    except FileNotFoundError:
+        return asset, 404
+
 if __name__ == "__main__":
     app.run()

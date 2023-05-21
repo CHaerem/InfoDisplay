@@ -43,5 +43,29 @@ def get_asset(asset):
     except FileNotFoundError:
         return asset, 404
 
+@app.route("/country/data/")
+def get_random_country_data():
+    # Make GET request to restcountries API 
+    url = "https://restcountries.com/v3.1/all"
+    response = requests.get(url)
+    data = response.json()
+
+    # Choose a random country from the response
+    random_index = random.randint(0, len(data) - 1)
+    random_country = data[random_index]
+
+    # Extract necessary information for the ESP32
+    country_data = {
+        "name": random_country["name"]["common"],
+        "capital": random_country["capital"][0],
+        "population": random_country["population"],
+        "languages": list(random_country["languages"].values()),
+        "currency": list(random_country["currencies"].keys())[0],
+        "flag_url": f"/country/globe/{random_country['name']['common']}"
+    }
+
+    return jsonify(country_data)
+
+
 if __name__ == "__main__":
     app.run()

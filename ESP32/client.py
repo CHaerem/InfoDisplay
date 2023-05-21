@@ -41,45 +41,40 @@ def get_flag(flag_url):
         return flag_image
     else:
         raise Exception(f"Error {response.status_code}: {response.reason}")
-    
 
-def display_flag(epd, country_name=None):
-    logging.info("Displaying flag...")
-
-    # Get the list of countries
-    response = requests.get("https://restcountries.com/v3.1/all")
+def get_country_info(server_url):
+    response = requests.get(f"{server_url}/info")
     data = response.json()
 
-    country = None
+    return data
 
+def display_flag(epd, server_url, country_name=None):
+    logging.info("Displaying flag...")
+
+    # Get the flag from server
     if country_name:
-        for item in data:
-            if item['name']['common'].lower() == country_name.lower():
-                country = item
-                break
-
-    # If country not found or not specified, select a random country
-    if not country:
-        random_index = random.randint(0, len(data) - 1)
-        country = data[random_index]
-
-    # Get the flag URL
-    flag_url = country["flags"]["png"]
+        flag_url = f"{server_url}/flag/{country_name}"
+    else:
+        flag_url = f"{server_url}/flag"
 
     # Download and open the flag image
     flag_image = get_flag(flag_url)
 
+    # Get the country info from the server
+    country = get_country_info(server_url)
+
+    # Rotate the flag image 180 degrees
+    rotated_flag_image = flag_image.rotate(180)
+
     # Resize the flag image to the display size
-    resized_flag_image = flag_image.resize((epd.width, epd.height), Image.ANTIALIAS)
+    resized_flag_image = rotated_flag_image.resize((epd.width, epd.height), Image.ANTIALIAS)
 
     # Display the flag image
     epd.display(epd.getbuffer(resized_flag_image))
 
     logging.info(f"Displayed flag for {country['name']['common']}")
 
-
-
-try:
+def main():
     logging.info("epd7in3f Demo")
 
     epd = epd7in3f.EPD()
@@ -89,16 +84,21 @@ try:
 
     # Add other drawing functions here...
 
+    # Get command line arguments
+    args = sys.argv
+    country_name = None
+
+    # If a country name argument is provided, use it
+    if len(args) > 1:
+        country_name = args[1]
+
+    server_url = "http://serverpi.local:5000"
+
     # Display flag
-    display_flag(epd, "portugal")
-    
+    display_flag(epd, server_url, country_name)
+
     logging.info("Goto Sleep...")
     epd.sleep()
-        
-except IOError as e:
-    logging.info(e)
-    
-except KeyboardInterrupt:    
-    logging.info("ctrl + c:")
-    epd7in3f.epdconfig.module_exit()
-    exit()
+
+if __name__ == '__main__':
+    main()

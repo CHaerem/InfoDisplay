@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: e-ink-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: e-ink-server
+  template:
+    metadata:
+      labels:
+        app: e-ink-server
+    spec:
+      containers:
+      - name: e-ink-server
+        image: ${{ secrets.DOCKER_HUB_USERNAME }}/e-ink-server:latest
+        ports:
+        - containerPort: 5000

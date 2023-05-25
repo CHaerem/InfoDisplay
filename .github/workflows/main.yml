@@ -34,6 +34,11 @@ jobs:
         with:
           authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
 
+      - name: Setup kubeconfig
+        run: |
+          echo "${{ secrets.KUBECONFIG }}" > ./kubeconfig.yaml
+          echo "KUBECONFIG=$(pwd)/kubeconfig.yaml" >> $GITHUB_ENV
+
       - name: Apply Kubernetes configuration
         run: |
-          kubectl apply -f k8s/deployment.yaml
+          kubectl apply -f k3s/e-ink-server/deployment.yaml

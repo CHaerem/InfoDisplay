@@ -14,6 +14,6 @@ spec:
     spec:
       containers:
       - name: e-ink-server
-        image: ${{ secrets.DOCKER_HUB_USERNAME }}/e-ink-server:latest
+        image: DOCKER_HUB_USERNAME/e-ink-server:latest
         ports:
         - containerPort: 5000

@@ -39,6 +39,10 @@ jobs:
           echo "${{ secrets.KUBECONFIG }}" > ./kubeconfig.yaml
           echo "KUBECONFIG=$(pwd)/kubeconfig.yaml" >> $GITHUB_ENV
 
+      - name: Replace image in the deployment file
+        run: |
+          sed -i 's/DOCKER_HUB_USERNAME/${{ secrets.DOCKER_HUB_USERNAME }}/' k3s/e-ink-server/deployment.yaml
+
       - name: Apply Kubernetes configuration
         run: |
           kubectl apply -f k3s/e-ink-server/deployment.yaml

@@ -28,6 +28,7 @@ jobs:
           file: ./E-ink/Dockerfile
           push: true
           tags: ${{ secrets.DOCKER_HUB_USERNAME }}/e-ink-server:latest
+          platforms: linux/amd64,linux/arm64/v8
 
       - name: Setup Tailscale
         uses: tailscale/github-action@main

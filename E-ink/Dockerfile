@@ -7,13 +7,11 @@ WORKDIR /app
 # Copy the current directory contents into the container at /app
 COPY . /app
 
-RUN ls
-
 # Install any needed packages specified in requirements.txt
-RUN pip install --no-cache-dir flask requests pillow
+RUN pip install flask requests pillow
 
 # Make port 5000 available to the world outside this container
 EXPOSE 5000
 
 # Run server.py when the container launches
-CMD ["python", "server.py"]
+CMD ["python", "/app/server.py"]

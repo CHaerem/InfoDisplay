@@ -66,12 +66,45 @@ def fetch_flag(country_name):
 
     return send_file(output, mimetype='image/bmp')
 
-@app.route('/info')
-def get_last_country_info():
-    if last_country is not None:
-        return jsonify(last_country)
+@app.route('/info/', defaults={'country_name': None})
+@app.route('/info/<country_name>')
+def get_country_info(country_name):
+    if country_name is not None:
+        # Get the list of countries
+        response = requests.get("https://restcountries.com/v3.1/all")
+        data = response.json()
+
+        country = None
+        for item in data:
+            if item['name']['common'].lower() == country_name.lower():
+                country = item
+                break
+
+        # If country is not found in the list, return an error
+        if not country:
+            return jsonify({"error": f"No country found with name {country_name}."})
     else:
-        return jsonify({"error": "No country has been fetched yet."})
+        country = last_country
+        if country is None:
+            return jsonify({"error": "No country has been fetched yet."})
+
+    # Extract the desired information
+    name = country['name']['common']
+    capital = country['capital'][0] if country['capital'] else 'No capital found'
+    population = country['population']
+    currency_code, currency_info = list(country['currencies'].items())[0]
+    currency_symbol = currency_info.get('symbol', 'N/A')  # Use get method to provide default value if 'symbol' key does not exist
+    currency = f"{currency_info['name']} ({currency_code}, {currency_symbol})"
+    languages = ', '.join([v for k, v in country['languages'].items()])
+
+    # Return a simplified JSON object
+    return jsonify({
+        'name': name,
+        'capital': capital,
+        'population': population,
+        'currency': currency,
+        'language': languages
+    })
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)

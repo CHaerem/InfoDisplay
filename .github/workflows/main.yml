@@ -38,7 +38,7 @@ jobs:
           context: ./E-ink/
           file: ./E-ink/Dockerfile
           push: true
-          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/e-ink-server:latest
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/e-ink-server:${{ github.sha }}
           platforms: linux/amd64,linux/arm64/v8
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
@@ -55,7 +55,7 @@ jobs:
 
       - name: Replace image in the deployment file
         run: |
-          sed -i 's/DOCKER_HUB_USERNAME/${{ secrets.DOCKER_HUB_USERNAME }}/' k3s/e-ink-server/deployment.yaml
+          sed -i 's|DOCKER_HUB_USERNAME|${{ secrets.DOCKER_HUB_USERNAME }}|; s|IMAGE_TAG|${{ github.sha }}|' k3s/e-ink-server/deployment.yaml
 
       - name: Apply Kubernetes deployment
         run: |

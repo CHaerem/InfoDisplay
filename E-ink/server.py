@@ -96,6 +96,7 @@ def get_country_info(country_name):
     currency_symbol = currency_info.get('symbol', 'N/A')  # Use get method to provide default value if 'symbol' key does not exist
     currency = f"{currency_info['name']} ({currency_code}, {currency_symbol})"
     languages = ', '.join([v for k, v in country['languages'].items()])
+    area = country['area']
 
     # Return a simplified JSON object
     return jsonify({
@@ -103,7 +104,8 @@ def get_country_info(country_name):
         'capital': capital,
         'population': population,
         'currency': currency,
-        'language': languages
+        'language': languages,
+        'area': area
     })
 
 if __name__ == '__main__':

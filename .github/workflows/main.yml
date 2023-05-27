@@ -24,8 +24,8 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v2
         with:
-          context: .
-          file: ./E-ink/Dockerfile
+          context: ./E-ink/
+          file: ./Dockerfile
           push: true
           tags: ${{ secrets.DOCKER_HUB_USERNAME }}/e-ink-server:latest
           platforms: linux/amd64,linux/arm64/v8

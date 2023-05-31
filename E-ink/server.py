@@ -1,5 +1,5 @@
 from flask import Flask, send_file, jsonify
-from PIL import Image
+from PIL import Image, ImageEnhance, ImageOps
 import requests
 from io import BytesIO
 import random
@@ -74,12 +74,17 @@ def fetch_flag(country_name):
     # Download and open the flag image
     flag_image = get_flag(flag_url)
 
-    # Resize the flag image to the display size
-    resized_flag_image = flag_image.resize((648, 480), Image.ANTIALIAS)
+    # Fill the image with black
+    flag_image = flag_image.convert("RGBA")
+    black_background = Image.new('RGBA', flag_image.size, 'black')
+    flag_image = Image.alpha_composite(black_background, flag_image)
+
+    # Optimize the flag image
+    flag_image = optimize_image(flag_image)
 
     # Convert the flag image to a BMP format
     output = BytesIO()
-    resized_flag_image.save(output, format="BMP")
+    flag_image.save(output, format="BMP")
     output.seek(0)
 
     return send_file(output, mimetype='image/bmp')
@@ -128,6 +133,46 @@ def get_country_info(country_name):
         'language': languages,
         'area': area
     })
+
+def optimize_image(image):
+    # Resize and center image
+    image = resize_and_center_image(image, (800, 480))
+
+    # Adjust contrast
+    enhancer = ImageEnhance.Contrast(image)
+    image = enhancer.enhance(1.5)  # Increase contrast
+
+    # Reduce colors (quantize)
+    image = image.quantize(colors=7)
+
+    # Apply dithering
+    image = image.convert('RGB', dither=Image.NONE)
+
+    return image
+
+def resize_and_center_image(image, display_size):
+    # Calculate scale factors for width and height
+    width_scale = display_size[0] / image.size[0]
+    height_scale = display_size[1] / image.size[1]
+
+    # Use the smaller scale factor to maintain aspect ratio
+    scale_factor = min(width_scale, height_scale)
+
+    # Resize the image
+    new_size = (int(image.size[0] * scale_factor), int(image.size[1] * scale_factor))
+    image = image.resize(new_size, Image.LANCZOS)
+
+    # Create a new image with a black background and the display size
+    new_image = Image.new('RGB', display_size, 'black')
+
+    # Calculate the position to paste the image onto the new image to center it
+    paste_position = ((display_size[0] - new_size[0]) // 2, (display_size[1] - new_size[1]) // 2)
+
+    # Paste the image onto the new image
+    new_image.paste(image, paste_position)
+
+    return new_image
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)

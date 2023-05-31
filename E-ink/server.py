@@ -3,10 +3,28 @@ from PIL import Image
 import requests
 from io import BytesIO
 import random
+import os
+import json
 
 app = Flask(__name__)
 
 last_country = None
+countries_data = None
+
+def load_countries_data():
+    global countries_data
+    # Check if the file exists
+    if os.path.isfile("countries.json"):
+        # Load the data from the file
+        with open("countries.json", "r") as file:
+            countries_data = json.load(file)
+    else:
+        # Fetch the data from the API
+        response = requests.get("https://restcountries.com/v3.1/all")
+        countries_data = response.json()
+        # Save the data to the file
+        with open("countries.json", "w") as file:
+            json.dump(countries_data, file)
 
 def get_flag(flag_url):
     headers = {
@@ -31,22 +49,22 @@ def get_flag(flag_url):
 @app.route('/flag/<country_name>')
 def fetch_flag(country_name):
     global last_country
+    global countries_data
 
-    # Get the list of countries
-    response = requests.get("https://restcountries.com/v3.1/all")
-    data = response.json()
+    if countries_data is None:
+        load_countries_data()
 
     country = None
 
     if country_name:
-        for item in data:
+        for item in countries_data:
             if item['name']['common'].lower() == country_name.lower():
                 country = item
                 break
 
     # If no country specified, select a random country
     if not country:
-        country = random.choice(data)
+        country = random.choice(countries_data)
 
     last_country = country
 
@@ -69,13 +87,16 @@ def fetch_flag(country_name):
 @app.route('/info/', defaults={'country_name': None})
 @app.route('/info/<country_name>')
 def get_country_info(country_name):
-    if country_name is not None:
-        # Get the list of countries
-        response = requests.get("https://restcountries.com/v3.1/all")
-        data = response.json()
+    global countries_data
+    global last_country
 
-        country = None
-        for item in data:
+    if countries_data is None:
+        load_countries_data()
+
+    country = None
+
+    if country_name is not None:
+        for item in countries_data:
             if item['name']['common'].lower() == country_name.lower():
                 country = item
                 break
